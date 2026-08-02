@@ -1,0 +1,479 @@
+<title>Simulador de Lucro — Peças Auto no eBay</title>
+<style>
+  :root{
+    --ground:#F4F4F1;
+    --card:#FFFFFF;
+    --ink:#22272E;
+    --ink-2:#5A6472;
+    --line:#DDDFD9;
+    --accent:#2456A6;
+    --accent-soft:#E8EEF8;
+    --good:#1E7A46;
+    --good-soft:#E3F1E9;
+    --bad:#B3372E;
+    --bad-soft:#F7E7E5;
+    --input-bg:#FBFAF7;
+    --shadow:0 1px 3px rgba(34,39,46,.08),0 8px 24px rgba(34,39,46,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ground:#181B1F; --card:#22262C; --ink:#E8EAED; --ink-2:#9AA3AE;
+      --line:#343A42; --accent:#7FA8E8; --accent-soft:#28354A;
+      --good:#5CC58A; --good-soft:#23372C; --bad:#E8877E; --bad-soft:#422B28;
+      --input-bg:#1B1F24; --shadow:0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#181B1F; --card:#22262C; --ink:#E8EAED; --ink-2:#9AA3AE;
+    --line:#343A42; --accent:#7FA8E8; --accent-soft:#28354A;
+    --good:#5CC58A; --good-soft:#23372C; --bad:#E8877E; --bad-soft:#422B28;
+    --input-bg:#1B1F24; --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  :root[data-theme="light"]{
+    --ground:#F4F4F1; --card:#FFFFFF; --ink:#22272E; --ink-2:#5A6472;
+    --line:#DDDFD9; --accent:#2456A6; --accent-soft:#E8EEF8;
+    --good:#1E7A46; --good-soft:#E3F1E9; --bad:#B3372E; --bad-soft:#F7E7E5;
+    --input-bg:#FBFAF7; --shadow:0 1px 3px rgba(34,39,46,.08),0 8px 24px rgba(34,39,46,.06);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:"Avenir Next","Segoe UI",system-ui,-apple-system,sans-serif;
+    font-size:16px; line-height:1.45;
+    padding:24px 16px 64px;
+  }
+  .wrap{max-width:540px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+
+  header h1{
+    font-size:1.5rem;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance;
+  }
+  header p{margin:6px 0 0;color:var(--ink-2);font-size:.95rem}
+
+  .tabs{
+    display:grid;grid-template-columns:1fr 1fr;gap:4px;
+    background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px;
+  }
+  .tabs button{
+    appearance:none;border:0;background:transparent;color:var(--ink-2);
+    font:inherit;font-weight:600;font-size:.95rem;padding:10px 8px;border-radius:7px;cursor:pointer;
+  }
+  .tabs button[aria-selected="true"]{background:var(--accent);color:#fff}
+  .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  section.panel{display:none;flex-direction:column;gap:20px}
+  section.panel.active{display:flex}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:20px;box-shadow:var(--shadow);
+  }
+  .card h2{
+    margin:0 0 14px;font-size:.78rem;font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--ink-2);
+  }
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field.wide{grid-column:1/-1}
+  .field label{font-size:.85rem;font-weight:600;color:var(--ink-2)}
+  .money{position:relative}
+  .money input{width:100%}
+  .money span{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    color:var(--ink-2);font-size:.9rem;pointer-events:none;
+  }
+  input[type=number]{
+    appearance:textfield;-moz-appearance:textfield;
+    font:inherit;font-variant-numeric:tabular-nums;color:var(--ink);
+    background:var(--input-bg);border:1px solid var(--line);border-radius:8px;
+    padding:10px 34px 10px 12px;
+  }
+  input[type=number]:focus-visible{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+  .result{
+    border-radius:12px;padding:20px;text-align:center;
+    background:var(--good-soft);border:1px solid var(--good);
+  }
+  .result.loss{background:var(--bad-soft);border-color:var(--bad)}
+  .result .label{font-size:.78rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+  .result .big{
+    font-size:2.4rem;font-weight:800;letter-spacing:-.02em;line-height:1.15;
+    font-variant-numeric:tabular-nums;color:var(--good);
+  }
+  .result.loss .big{color:var(--bad)}
+  .result .sub{color:var(--ink-2);font-size:.92rem;margin-top:4px}
+  .result .warn{margin-top:8px;font-size:.9rem;font-weight:600;color:var(--bad)}
+
+  .breakdown{display:flex;flex-direction:column;gap:0;font-variant-numeric:tabular-nums}
+  .breakdown .row{
+    display:flex;justify-content:space-between;gap:12px;
+    padding:9px 0;border-bottom:1px solid var(--line);font-size:.95rem;
+  }
+  .breakdown .row:last-child{border-bottom:0}
+  .breakdown .row .k{color:var(--ink-2)}
+  .breakdown .row.total{font-weight:700}
+  .breakdown .row.total .k{color:var(--ink)}
+
+  details.params{border:1px solid var(--line);border-radius:12px;background:var(--card)}
+  details.params summary{
+    cursor:pointer;padding:14px 20px;font-weight:600;font-size:.95rem;color:var(--accent);
+    list-style:none;display:flex;justify-content:space-between;align-items:center;
+  }
+  details.params summary::-webkit-details-marker{display:none}
+  details.params summary::after{content:"▾";transition:transform .15s}
+  details.params[open] summary::after{transform:rotate(180deg)}
+  details.params .inner{padding:4px 20px 20px;display:flex;flex-direction:column;gap:14px}
+  details.params .note{font-size:.85rem;color:var(--ink-2);margin:0}
+  @media (prefers-reduced-motion: reduce){
+    details.params summary::after{transition:none}
+  }
+  .btn{
+    appearance:none;border:0;border-radius:9px;cursor:pointer;font:inherit;font-weight:700;
+    padding:12px 16px;background:var(--accent);color:#fff;width:100%;
+  }
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn.secondary{background:var(--accent-soft);color:var(--accent)}
+  .btn:disabled{opacity:.6;cursor:default}
+
+  .pecas .empty{color:var(--ink-2);font-size:.92rem;margin:0}
+  .peca-row{
+    display:flex;align-items:center;gap:10px;padding:10px 0;
+    border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;
+  }
+  .peca-row:last-of-type{border-bottom:0}
+  .peca-row .info{flex:1;min-width:0}
+  .peca-row .nome{font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .peca-row .det{font-size:.82rem;color:var(--ink-2)}
+  .peca-row .lucro{font-weight:700;white-space:nowrap}
+  .peca-row .lucro.neg{color:var(--bad)}
+  .peca-row .del{
+    appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink-2);
+    border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:.95rem;flex:none;
+  }
+  .peca-row .del:hover{color:var(--bad);border-color:var(--bad)}
+  .peca-row .del:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .pecas-totais{
+    display:flex;justify-content:space-between;font-weight:700;padding-top:12px;
+    border-top:2px solid var(--line);margin-top:4px;font-variant-numeric:tabular-nums;
+  }
+  .pecas-note{font-size:.82rem;color:var(--ink-2);margin:10px 0 0}
+  footer{color:var(--ink-2);font-size:.82rem;text-align:center;max-width:60ch;margin:0 auto}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Simulador de lucro — peças auto no eBay</h1>
+    <p>Mete os números e vê logo quanto sobra depois de todas as taxas do eBay.</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-lucro" aria-selected="true" onclick="showTab('lucro')">Quanto lucro?</button>
+    <button role="tab" id="tab-minimo" aria-selected="false" onclick="showTab('minimo')">Preço mínimo</button>
+  </div>
+
+  <!-- ================= PAINEL LUCRO ================= -->
+  <section class="panel active" id="panel-lucro">
+    <div class="card">
+      <h2>A venda</h2>
+      <div class="fields">
+        <div class="field wide">
+          <label for="nome">Nome da peça (para guardares na lista)</label>
+          <div class="money"><input type="text" id="nome" placeholder="Ex.: Farolim BMW E46" style="width:100%;font:inherit;color:var(--ink);background:var(--input-bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px"></div>
+        </div>
+        <div class="field">
+          <label for="preco">Preço de venda</label>
+          <div class="money"><input type="number" id="preco" value="85" min="0" step="0.5" inputmode="decimal"><span>$</span></div>
+        </div>
+        <div class="field">
+          <label for="portes">Portes cobrados ao comprador</label>
+          <div class="money"><input type="number" id="portes" value="25" min="0" step="0.5" inputmode="decimal"><span>$</span></div>
+        </div>
+        <div class="field wide">
+          <label for="promo">Anúncio patrocinado (0 se não usares)</label>
+          <div class="money"><input type="number" id="promo" value="2" min="0" max="30" step="0.5" inputmode="decimal"><span>%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Os teus custos</h2>
+      <div class="fields">
+        <div class="field">
+          <label for="custo">Custo da peça</label>
+          <div class="money"><input type="number" id="custo" value="30" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+        </div>
+        <div class="field">
+          <label for="envio">Envio que pagas</label>
+          <div class="money"><input type="number" id="envio" value="18.5" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+        </div>
+        <div class="field wide">
+          <label for="emb">Embalagem</label>
+          <div class="money"><input type="number" id="emb" value="2" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result" id="resultado">
+      <div class="label">O teu lucro</div>
+      <div class="big" id="lucroBig">—</div>
+      <div class="sub" id="lucroSub"></div>
+      <div class="warn" id="lucroWarn" hidden>⚠ A este preço ficas a perder dinheiro.</div>
+    </div>
+
+    <button class="btn" id="btnGuardar" onclick="addPeca()">Guardar esta peça na lista</button>
+
+    <div class="card">
+      <h2>Para onde vai o dinheiro</h2>
+      <div class="breakdown" id="breakdown"></div>
+    </div>
+  </section>
+
+  <!-- ================= PAINEL PREÇO MÍNIMO ================= -->
+  <section class="panel" id="panel-minimo">
+    <div class="card">
+      <h2>Os teus custos e o lucro que queres</h2>
+      <div class="fields">
+        <div class="field">
+          <label for="mCusto">Custo da peça</label>
+          <div class="money"><input type="number" id="mCusto" value="30" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+        </div>
+        <div class="field">
+          <label for="mEnvio">Envio que vais pagar</label>
+          <div class="money"><input type="number" id="mEnvio" value="18.5" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+        </div>
+        <div class="field">
+          <label for="mEmb">Embalagem</label>
+          <div class="money"><input type="number" id="mEmb" value="2" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+        </div>
+        <div class="field">
+          <label for="mLucro">Lucro que queres</label>
+          <div class="money"><input type="number" id="mLucro" value="25" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+        </div>
+        <div class="field wide">
+          <label for="mPromo">Anúncio patrocinado (0 se não usares)</label>
+          <div class="money"><input type="number" id="mPromo" value="2" min="0" max="30" step="0.5" inputmode="decimal"><span>%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result" id="mResultado">
+      <div class="label">Tens de anunciar por, no mínimo</div>
+      <div class="big" id="mBig">—</div>
+      <div class="sub" id="mSub"></div>
+    </div>
+  </section>
+
+  <!-- ================= PEÇAS GUARDADAS ================= -->
+  <div class="card pecas">
+    <h2>As tuas peças guardadas</h2>
+    <div id="listaPecas"><p class="empty">Ainda não guardaste nenhuma peça. Calcula uma no separador «Quanto lucro?» e carrega em «Guardar».</p></div>
+    <div class="pecas-totais" id="pecasTotais" hidden><span>Total (<span id="pecasN"></span> peças)</span><span id="pecasLucro"></span></div>
+    <button class="btn secondary" id="btnExport" onclick="exportPecas()" style="margin-top:14px" hidden>Exportar lista (para Excel / backup)</button>
+    <p class="pecas-note">A lista fica guardada neste browser, neste aparelho. Se limpares os dados do browser ou mudares de telemóvel, perde-se — exporta de vez em quando para teres backup.</p>
+  </div>
+
+  <!-- ================= TAXAS ================= -->
+  <details class="params">
+    <summary>Taxas do eBay e câmbio (avançado)</summary>
+    <div class="inner">
+      <p class="note">Valores da tabela pública do eBay.com para Peças &amp; Acessórios sem loja (julho 2026). Se venderes num site eBay europeu em euros: câmbio = 1 e conversão = 0.</p>
+      <div class="fields">
+        <div class="field">
+          <label for="pFvf">Taxa final de venda</label>
+          <div class="money"><input type="number" id="pFvf" value="13.25" min="0" max="30" step="0.05" inputmode="decimal"><span>%</span></div>
+        </div>
+        <div class="field">
+          <label for="pFixa">Taxa fixa por encomenda</label>
+          <div class="money"><input type="number" id="pFixa" value="0.40" min="0" step="0.05" inputmode="decimal"><span>$</span></div>
+        </div>
+        <div class="field">
+          <label for="pIntl">Taxa internacional</label>
+          <div class="money"><input type="number" id="pIntl" value="1.65" min="0" max="10" step="0.05" inputmode="decimal"><span>%</span></div>
+        </div>
+        <div class="field">
+          <label for="pConv">Conversão de moeda</label>
+          <div class="money"><input type="number" id="pConv" value="3" min="0" max="10" step="0.1" inputmode="decimal"><span>%</span></div>
+        </div>
+        <div class="field wide">
+          <label for="pCambio">Câmbio: 1 dólar vale (em euros)</label>
+          <div class="money"><input type="number" id="pCambio" value="0.86" min="0.1" max="2" step="0.01" inputmode="decimal"><span>€</span></div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <footer>As taxas do eBay aplicam-se ao total pago pelo comprador (preço + portes). Valores indicativos — confirma as tuas taxas exatas no Seller Hub do eBay.</footer>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+  const eur = v => v.toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €';
+  const usd = v => '$' + v.toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pct = v => v.toLocaleString('pt-PT',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
+
+  function params(){
+    return {
+      fvf: num('pFvf')/100, fixa: num('pFixa'), intl: num('pIntl')/100,
+      conv: num('pConv')/100, cambio: num('pCambio')
+    };
+  }
+
+  function calcLucro(){
+    const p = params();
+    const preco = num('preco'), portes = num('portes'), promo = num('promo')/100;
+    const custos = num('custo') + num('envio') + num('emb');
+    const total = preco + portes;
+    const taxaVenda = total * p.fvf;
+    const taxaIntl = total * p.intl;
+    const taxaPromo = total * promo;
+    const taxas = taxaVenda + taxaIntl + taxaPromo + p.fixa;
+    const recebeUsd = total - taxas;
+    const recebeEur = recebeUsd * p.cambio * (1 - p.conv);
+    const custoConv = recebeUsd * p.cambio - recebeEur;
+    const lucro = recebeEur - custos;
+    const margem = total > 0 ? lucro / (total * p.cambio) : 0;
+
+    const box = $('resultado');
+    box.classList.toggle('loss', lucro < 0);
+    $('lucroBig').textContent = eur(lucro);
+    $('lucroSub').textContent = total > 0 ? 'Margem de ' + pct(margem*100) + ' sobre a venda' : '';
+    $('lucroWarn').hidden = lucro >= 0;
+
+    const rows = [
+      ['Comprador paga (peça + portes)', usd(total)],
+      ['Taxa de venda eBay (' + pct(p.fvf*100) + ')', '− ' + usd(taxaVenda)],
+      ['Taxa internacional (' + pct(p.intl*100) + ')', '− ' + usd(taxaIntl)],
+      ['Anúncio patrocinado (' + pct(promo*100) + ')', '− ' + usd(taxaPromo)],
+      ['Taxa fixa', '− ' + usd(p.fixa)],
+      ['Recebes do eBay', usd(recebeUsd)],
+      ['Conversão para euros', eur(recebeUsd * p.cambio) + ' − ' + eur(custoConv)],
+      ['Cai na tua conta', eur(recebeEur)],
+      ['Custos teus (peça + envio + embalagem)', '− ' + eur(custos)],
+    ];
+    $('breakdown').innerHTML =
+      rows.map(r => '<div class="row"><span class="k">'+r[0]+'</span><span>'+r[1]+'</span></div>').join('') +
+      '<div class="row total"><span class="k">Lucro final</span><span>'+eur(lucro)+'</span></div>';
+  }
+
+  function calcMinimo(){
+    const p = params();
+    const promo = num('mPromo')/100;
+    const alvoEur = num('mCusto') + num('mEnvio') + num('mEmb') + num('mLucro');
+    const denomFx = p.cambio * (1 - p.conv);
+    const denomFee = 1 - p.fvf - p.intl - promo;
+    let texto = '—', sub = '';
+    if (denomFx > 0 && denomFee > 0){
+      const alvoUsd = alvoEur / denomFx;
+      const precoMin = (alvoUsd + p.fixa) / denomFee;
+      texto = usd(precoMin);
+      sub = 'Preço com portes incluídos. Abaixo disto, o lucro de ' + eur(num('mLucro')) + ' já não se cumpre.';
+    } else {
+      sub = 'Verifica as taxas — a soma das percentagens não pode chegar a 100%.';
+    }
+    $('mBig').textContent = texto;
+    $('mSub').textContent = sub;
+  }
+
+  function recalc(){ calcLucro(); calcMinimo(); }
+
+  function showTab(which){
+    for (const t of ['lucro','minimo']){
+      $('tab-'+t).setAttribute('aria-selected', String(t===which));
+      $('panel-'+t).classList.toggle('active', t===which);
+    }
+  }
+
+  // ---------- lista de peças guardadas (fica no browser) ----------
+  const KEY = 'simulador-ebay-pecas-v1';
+  let pecas = [];
+  try { pecas = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { pecas = []; }
+  function persistir(){
+    try { localStorage.setItem(KEY, JSON.stringify(pecas)); } catch(e) { /* sem storage: a lista dura só esta visita */ }
+  }
+
+  function lucroAtual(){
+    const p = params();
+    const total = num('preco') + num('portes');
+    const taxas = total*(p.fvf + p.intl + num('promo')/100) + p.fixa;
+    const recebeEur = (total - taxas) * p.cambio * (1 - p.conv);
+    const custos = num('custo') + num('envio') + num('emb');
+    return { lucro: recebeEur - custos, margem: total > 0 ? (recebeEur - custos)/(total*p.cambio) : 0 };
+  }
+
+  function addPeca(){
+    const nome = $('nome').value.trim();
+    if (!nome){ $('nome').focus(); $('nome').placeholder = 'Dá um nome à peça primeiro'; return; }
+    const r = lucroAtual();
+    pecas.push({
+      nome, preco: num('preco'), portes: num('portes'), promo: num('promo'),
+      custo: num('custo'), envio: num('envio'), emb: num('emb'),
+      lucro: Math.round(r.lucro*100)/100, margem: Math.round(r.margem*1000)/1000,
+      data: new Date().toISOString().slice(0,10)
+    });
+    persistir(); renderPecas();
+    $('nome').value = '';
+    const b = $('btnGuardar'); b.textContent = 'Guardada ✓'; b.disabled = true;
+    setTimeout(() => { b.textContent = 'Guardar esta peça na lista'; b.disabled = false; }, 1200);
+  }
+
+  function delPeca(i){
+    pecas.splice(i,1); persistir(); renderPecas();
+  }
+
+  function renderPecas(){
+    const box = $('listaPecas');
+    if (!pecas.length){
+      box.innerHTML = '<p class="empty">Ainda não guardaste nenhuma peça. Calcula uma no separador «Quanto lucro?» e carrega em «Guardar».</p>';
+    } else {
+      box.innerHTML = pecas.map((p,i) =>
+        '<div class="peca-row">'
+        + '<div class="info"><div class="nome">'+esc(p.nome)+'</div>'
+        + '<div class="det">'+usd(p.preco+p.portes)+' de venda · custos '+eur(p.custo+p.envio+p.emb)+' · '+p.data+'</div></div>'
+        + '<div class="lucro'+(p.lucro<0?' neg':'')+'">'+eur(p.lucro)+'</div>'
+        + '<button class="del" aria-label="Apagar '+esc(p.nome)+'" onclick="delPeca('+i+')">✕</button>'
+        + '</div>'
+      ).join('');
+    }
+    const tot = pecas.reduce((s,p) => s+p.lucro, 0);
+    $('pecasTotais').hidden = !pecas.length;
+    $('btnExport').hidden = !pecas.length;
+    $('pecasN').textContent = pecas.length;
+    $('pecasLucro').textContent = eur(tot);
+  }
+
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function csvLista(){
+    const cab = 'Nome;Preço venda $;Portes $;Anúncio %;Custo €;Envio €;Embalagem €;Lucro €;Margem %;Data';
+    const n2 = v => v.toFixed(2).replace('.', ',');
+    const linhas = pecas.map(p => [
+      '"'+p.nome.replace(/"/g,'""')+'"', n2(p.preco), n2(p.portes), n2(p.promo),
+      n2(p.custo), n2(p.envio), n2(p.emb), n2(p.lucro), n2(p.margem*100), p.data
+    ].join(';'));
+    return [cab].concat(linhas).join('\r\n');
+  }
+
+  async function exportPecas(){
+    const conteudo = '\uFEFF' + csvLista();
+    if (window.claude && window.claude.downloads){
+      try {
+        await window.claude.downloads.save({ filename: 'pecas-ebay.csv', data: conteudo });
+        return;
+      } catch(err){
+        if (err && err.code === 'extension_not_enabled'){
+          try { await window.claude.downloads.save({ filename: 'pecas-ebay.txt', data: conteudo }); return; } catch(e2){ if (e2 && e2.code === 'declined') return; }
+        }
+        if (err && (err.code === 'declined' || err.code === 'rate_limited')) return;
+      }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([conteudo], {type:'text/csv'}));
+    a.download = 'pecas-ebay.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  document.querySelectorAll('input').forEach(i => { if (i.type === 'number') i.addEventListener('input', recalc); });
+  recalc();
+  renderPecas();
+</script>
