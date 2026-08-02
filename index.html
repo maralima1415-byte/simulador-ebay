@@ -268,7 +268,8 @@
     <h2>As tuas peças guardadas</h2>
     <div id="listaPecas"><p class="empty">Ainda não guardaste nenhuma peça. Calcula uma no separador «Quanto lucro?» e carrega em «Guardar».</p></div>
     <div class="pecas-totais" id="pecasTotais" hidden><span>Total (<span id="pecasN"></span> peças)</span><span id="pecasLucro"></span></div>
-    <button class="btn secondary" id="btnExport" onclick="exportPecas()" style="margin-top:14px" hidden>Guardar a lista num ficheiro (grátis, abre em qualquer aparelho)</button>
+    <button class="btn" id="btnCopiar" onclick="copiarPecas()" style="margin-top:14px" hidden>Copiar para o Google Sheets</button>
+    <button class="btn secondary" id="btnExport" onclick="exportPecas()" style="margin-top:8px" hidden>Guardar a lista num ficheiro (grátis, abre em qualquer aparelho)</button>
     <p class="pecas-note">A lista fica guardada neste browser, neste aparelho. Se limpares os dados do browser ou mudares de telemóvel, perde-se — exporta de vez em quando para teres backup.</p>
   </div>
 
@@ -438,6 +439,7 @@
     const tot = pecas.reduce((s,p) => s+p.lucro, 0);
     $('pecasTotais').hidden = !pecas.length;
     $('btnExport').hidden = !pecas.length;
+    $('btnCopiar').hidden = !pecas.length;
     $('pecasN').textContent = pecas.length;
     $('pecasLucro').textContent = eur(tot);
   }
@@ -469,6 +471,31 @@
     a.href = URL.createObjectURL(new Blob([conteudo], {type:'text/plain;charset=utf-8'}));
     a.download = 'pecas-ebay.txt';
     document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  function tsvLista(){
+    const TAB = String.fromCharCode(9), NL = String.fromCharCode(10);
+    const n2 = v => v.toFixed(2).replace('.', ',');
+    const cab = ['Data','Pe\u00e7a','Pre\u00e7o venda $','Portes $','An\u00fancio %','Custo pe\u00e7a \u20ac','Envio \u20ac','Embalagem \u20ac','Lucro \u20ac','Margem %'].join(TAB);
+    const linhas = pecas.map(p => [
+      p.data, p.nome, n2(p.preco), n2(p.portes), n2(p.promo),
+      n2(p.custo), n2(p.envio), n2(p.emb), n2(p.lucro), n2(p.margem*100)
+    ].join(TAB));
+    return [cab].concat(linhas).join(NL);
+  }
+
+  async function copiarPecas(){
+    const texto = tsvLista();
+    let ok = false;
+    try { await navigator.clipboard.writeText(texto); ok = true; }
+    catch(e){
+      const ta = document.createElement('textarea');
+      ta.value = texto; document.body.appendChild(ta);
+      ta.select(); ok = document.execCommand('copy'); ta.remove();
+    }
+    const b = $('btnCopiar');
+    b.textContent = ok ? 'Copiado \u2713 \u2014 agora cola na tua folha' : 'N\u00e3o consegui copiar \u2014 tenta outra vez';
+    setTimeout(() => { b.textContent = 'Copiar para o Google Sheets'; }, 2500);
   }
 
   document.querySelectorAll('input').forEach(i => { if (i.type === 'number') i.addEventListener('input', recalc); });
