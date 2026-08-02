@@ -268,7 +268,7 @@
     <h2>As tuas peças guardadas</h2>
     <div id="listaPecas"><p class="empty">Ainda não guardaste nenhuma peça. Calcula uma no separador «Quanto lucro?» e carrega em «Guardar».</p></div>
     <div class="pecas-totais" id="pecasTotais" hidden><span>Total (<span id="pecasN"></span> peças)</span><span id="pecasLucro"></span></div>
-    <button class="btn secondary" id="btnExport" onclick="exportPecas()" style="margin-top:14px" hidden>Exportar lista (para Excel / backup)</button>
+    <button class="btn secondary" id="btnExport" onclick="exportPecas()" style="margin-top:14px" hidden>Guardar a lista num ficheiro (grátis, abre em qualquer aparelho)</button>
     <p class="pecas-note">A lista fica guardada neste browser, neste aparelho. Se limpares os dados do browser ou mudares de telemóvel, perde-se — exporta de vez em quando para teres backup.</p>
   </div>
 
@@ -444,32 +444,30 @@
 
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  function csvLista(){
-    const cab = 'Nome;Preço venda $;Portes $;Anúncio %;Custo €;Envio €;Embalagem €;Lucro €;Margem %;Data';
+  function txtLista(){
     const n2 = v => v.toFixed(2).replace('.', ',');
-    const linhas = pecas.map(p => [
-      '"'+p.nome.replace(/"/g,'""')+'"', n2(p.preco), n2(p.portes), n2(p.promo),
-      n2(p.custo), n2(p.envio), n2(p.emb), n2(p.lucro), n2(p.margem*100), p.data
-    ].join(';'));
-    return [cab].concat(linhas).join('\r\n');
+    const NL = String.fromCharCode(10);
+    const linhas = pecas.map((p,i) =>
+      (i+1)+'. '+p.nome+' \u2014 lucro '+n2(p.lucro)+' \u20ac'+NL
+      +'   venda $'+n2(p.preco+p.portes)+' \u00b7 custos '+n2(p.custo+p.envio+p.emb)+' \u20ac \u00b7 guardada em '+p.data
+    );
+    const tot = pecas.reduce((s,p) => s+p.lucro, 0);
+    return 'AS MINHAS PE\u00c7AS \u2014 SIMULADOR EBAY'+NL+NL
+      + linhas.join(NL+NL)
+      + NL+NL+'TOTAL: '+pecas.length+' pe\u00e7a'+(pecas.length===1?'':'s')+' \u2014 '+n2(tot)+' \u20ac'+NL;
   }
 
   async function exportPecas(){
-    const conteudo = '\uFEFF' + csvLista();
+    const conteudo = txtLista();
     if (window.claude && window.claude.downloads){
       try {
-        await window.claude.downloads.save({ filename: 'pecas-ebay.csv', data: conteudo });
-        return;
-      } catch(err){
-        if (err && err.code === 'extension_not_enabled'){
-          try { await window.claude.downloads.save({ filename: 'pecas-ebay.txt', data: conteudo }); return; } catch(e2){ if (e2 && e2.code === 'declined') return; }
-        }
-        if (err && (err.code === 'declined' || err.code === 'rate_limited')) return;
-      }
+        await window.claude.downloads.save({ filename: 'pecas-ebay.txt', data: conteudo });
+      } catch(err){ /* recusado ou indisponivel: nao repetir automaticamente */ }
+      return;
     }
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([conteudo], {type:'text/csv'}));
-    a.download = 'pecas-ebay.csv';
+    a.href = URL.createObjectURL(new Blob([conteudo], {type:'text/plain;charset=utf-8'}));
+    a.download = 'pecas-ebay.txt';
     document.body.appendChild(a); a.click(); a.remove();
   }
 
