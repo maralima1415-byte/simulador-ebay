@@ -1,4 +1,4 @@
-<title>Simulador de Lucro — Peças Auto no eBay</title>
+<title>Simulador de Lucro no eBay</title>
 <style>
   :root{
     --ground:#F4F4F1;
@@ -165,7 +165,7 @@
 
 <div class="wrap">
   <header>
-    <h1>Simulador de lucro — peças auto no eBay</h1>
+    <h1>Simulador de lucro no eBay</h1>
     <p>Mete os números e vê logo quanto sobra depois de todas as taxas do eBay.</p>
   </header>
 
@@ -180,8 +180,8 @@
       <h2>A venda</h2>
       <div class="fields">
         <div class="field wide">
-          <label for="nome">Nome da peça (para guardares na lista)</label>
-          <div class="money"><input type="text" id="nome" placeholder="Ex.: Farolim BMW E46" style="width:100%;font:inherit;color:var(--ink);background:var(--input-bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px"></div>
+          <label for="nome">O que estás a vender? (para guardares na lista)</label>
+          <div class="money"><input type="text" id="nome" placeholder="Ex.: Ténis, farolim, telemóvel…" style="width:100%;font:inherit;color:var(--ink);background:var(--input-bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px"></div>
         </div>
         <div class="field">
           <label for="preco">Preço de venda</label>
@@ -202,7 +202,7 @@
       <h2>Os teus custos</h2>
       <div class="fields">
         <div class="field">
-          <label for="custo">Custo da peça</label>
+          <label for="custo">Custo do artigo</label>
           <div class="money"><input type="number" id="custo" value="30" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
         </div>
         <div class="field">
@@ -223,7 +223,7 @@
       <div class="warn" id="lucroWarn" hidden>⚠ A este preço ficas a perder dinheiro.</div>
     </div>
 
-    <button class="btn" id="btnGuardar" onclick="addPeca()">Guardar esta peça na lista</button>
+    <button class="btn" id="btnGuardar" onclick="addPeca()">Guardar este artigo na lista</button>
 
     <div class="card">
       <h2>Para onde vai o dinheiro</h2>
@@ -237,7 +237,7 @@
       <h2>Os teus custos e o lucro que queres</h2>
       <div class="fields">
         <div class="field">
-          <label for="mCusto">Custo da peça</label>
+          <label for="mCusto">Custo do artigo</label>
           <div class="money"><input type="number" id="mCusto" value="30" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
         </div>
         <div class="field">
@@ -266,11 +266,11 @@
     </div>
   </section>
 
-  <!-- ================= PEÇAS GUARDADAS ================= -->
+  <!-- ================= ARTIGOS GUARDADOS ================= -->
   <div class="card pecas">
-    <h2>As tuas peças guardadas</h2>
-    <div id="listaPecas"><p class="empty">Ainda não guardaste nenhuma peça. Calcula uma no separador «Quanto lucro?» e carrega em «Guardar».</p></div>
-    <div class="pecas-totais" id="pecasTotais" hidden><span>Total (<span id="pecasN"></span> peças)</span><span id="pecasLucro"></span></div>
+    <h2>Os teus artigos guardados</h2>
+    <div id="listaPecas"><p class="empty">Ainda não guardaste nenhum artigo. Calcula um no separador «Quanto lucro?» e carrega em «Guardar».</p></div>
+    <div class="pecas-totais" id="pecasTotais" hidden><span>Total (<span id="pecasN"></span> artigos)</span><span id="pecasLucro"></span></div>
     <button class="btn" id="btnCopiar" onclick="copiarPecas()" style="margin-top:14px" hidden>Copiar para o Google Sheets</button>
     <button class="btn secondary" id="btnExport" onclick="exportPecas()" style="margin-top:8px" hidden>Guardar a lista num ficheiro (grátis, abre em qualquer aparelho)</button>
     <p class="pecas-note">A lista fica guardada neste browser, neste aparelho. Se limpares os dados do browser ou mudares de telemóvel, perde-se — exporta de vez em quando para teres backup.</p>
@@ -278,12 +278,12 @@
 
   <!-- ================= TAXAS ================= -->
   <details class="params">
-    <summary>Taxas do eBay e câmbio (avançado)</summary>
+    <summary>Mais opções</summary>
     <div class="inner">
-      <p class="note">Valores da tabela pública do eBay.com para Peças &amp; Acessórios sem loja (julho 2026). Se venderes num site eBay europeu em euros: câmbio = 1 e conversão = 0.</p>
+      <p class="note">A taxa de venda varia por categoria do eBay — a predefinição (13,25%) é a mais comum sem loja; confirma a tua no Seller Hub. Se venderes num site eBay europeu em euros: câmbio = 1 e conversão = 0.</p>
       <div class="fields">
         <div class="field">
-          <label for="pFvf">Taxa final de venda</label>
+          <label for="pFvf">Taxa de venda da tua categoria (%)</label>
           <div class="money"><input type="number" id="pFvf" value="13.25" min="0" max="30" step="0.05" inputmode="decimal"><span>%</span></div>
         </div>
         <div class="field">
@@ -347,7 +347,7 @@
     $('lucroWarn').hidden = lucro >= 0;
 
     const rows = [
-      ['Comprador paga (peça + portes)', usd(total)],
+      ['Comprador paga (artigo + portes)', usd(total)],
       ['Taxa de venda eBay (' + pct(p.fvf*100) + ')', '− ' + usd(taxaVenda)],
       ['Taxa internacional (' + pct(p.intl*100) + ')', '− ' + usd(taxaIntl)],
       ['Anúncio patrocinado (' + pct(promo*100) + ')', '− ' + usd(taxaPromo)],
@@ -355,7 +355,7 @@
       ['Recebes do eBay', usd(recebeUsd)],
       ['Conversão para euros', eur(recebeUsd * p.cambio) + ' − ' + eur(custoConv)],
       ['Cai na tua conta', eur(recebeEur)],
-      ['Custos teus (peça + envio + embalagem)', '− ' + eur(custos)],
+      ['Custos teus (artigo + envio + embalagem)', '− ' + eur(custos)],
     ];
     $('breakdown').innerHTML =
       rows.map(r => '<div class="row"><span class="k">'+r[0]+'</span><span>'+r[1]+'</span></div>').join('') +
@@ -390,7 +390,7 @@
     }
   }
 
-  // ---------- lista de peças guardadas (fica no browser) ----------
+  // ---------- lista de artigos guardados (fica no browser) ----------
   const KEY = 'simulador-ebay-pecas-v1';
   let pecas = [];
   try { pecas = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { pecas = []; }
@@ -409,7 +409,7 @@
 
   function addPeca(){
     const nome = $('nome').value.trim();
-    if (!nome){ $('nome').focus(); $('nome').placeholder = 'Dá um nome à peça primeiro'; return; }
+    if (!nome){ $('nome').focus(); $('nome').placeholder = 'Escreve primeiro o que estás a vender'; return; }
     const r = lucroAtual();
     pecas.push({
       nome, preco: num('preco'), portes: num('portes'), promo: num('promo'),
@@ -419,8 +419,8 @@
     });
     persistir(); renderPecas();
     $('nome').value = '';
-    const b = $('btnGuardar'); b.textContent = 'Guardada ✓'; b.disabled = true;
-    setTimeout(() => { b.textContent = 'Guardar esta peça na lista'; b.disabled = false; }, 1200);
+    const b = $('btnGuardar'); b.textContent = 'Guardado ✓'; b.disabled = true;
+    setTimeout(() => { b.textContent = 'Guardar este artigo na lista'; b.disabled = false; }, 1200);
   }
 
   function delPeca(i){
@@ -430,7 +430,7 @@
   function renderPecas(){
     const box = $('listaPecas');
     if (!pecas.length){
-      box.innerHTML = '<p class="empty">Ainda não guardaste nenhuma peça. Calcula uma no separador «Quanto lucro?» e carrega em «Guardar».</p>';
+      box.innerHTML = '<p class="empty">Ainda não guardaste nenhum artigo. Calcula um no separador «Quanto lucro?» e carrega em «Guardar».</p>';
     } else {
       box.innerHTML = pecas.map((p,i) =>
         '<div class="peca-row">'
@@ -459,9 +459,9 @@
       +'   venda $'+n2(p.preco+p.portes)+' \u00b7 custos '+n2(p.custo+p.envio+p.emb)+' \u20ac \u00b7 guardada em '+p.data
     );
     const tot = pecas.reduce((s,p) => s+p.lucro, 0);
-    return 'AS MINHAS PE\u00c7AS \u2014 SIMULADOR EBAY'+NL+NL
+    return 'OS MEUS ARTIGOS \u2014 SIMULADOR EBAY'+NL+NL
       + linhas.join(NL+NL)
-      + NL+NL+'TOTAL: '+pecas.length+' pe\u00e7a'+(pecas.length===1?'':'s')+' \u2014 '+n2(tot)+' \u20ac'+NL;
+      + NL+NL+'TOTAL: '+pecas.length+' artigo'+(pecas.length===1?'':'s')+' \u2014 '+n2(tot)+' \u20ac'+NL;
   }
 
   async function exportPecas(){
@@ -481,7 +481,7 @@
   function tsvLista(){
     const TAB = String.fromCharCode(9), NL = String.fromCharCode(10);
     const n2 = v => v.toFixed(2).replace('.', ',');
-    const cab = ['Data','Pe\u00e7a','Pre\u00e7o venda $','Portes $','An\u00fancio %','Custo pe\u00e7a \u20ac','Envio \u20ac','Embalagem \u20ac','Lucro \u20ac','Margem %'].join(TAB);
+    const cab = ['Data','Artigo','Pre\u00e7o venda $','Portes $','An\u00fancio %','Custo do artigo \u20ac','Envio \u20ac','Embalagem \u20ac','Lucro \u20ac','Margem %'].join(TAB);
     const linhas = pecas.map(p => [
       p.data, p.nome, n2(p.preco), n2(p.portes), n2(p.promo),
       n2(p.custo), n2(p.envio), n2(p.emb), n2(p.lucro), n2(p.margem*100)
