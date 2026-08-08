@@ -316,9 +316,16 @@
 <script>
   const $ = id => document.getElementById(id);
   const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
-  const eur = v => v.toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €';
-  const usd = v => '$' + v.toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const pct = v => v.toLocaleString('pt-PT',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
+  // formatação manual: vírgula decimal e espaço de milhares garantidos em qualquer aparelho
+  const numPT = (v, dec) => {
+    const neg = v < 0;
+    const [i, d] = Math.abs(v).toFixed(dec).split('.');
+    const grp = i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return (neg ? '-' : '') + grp + (dec ? ',' + d : '');
+  };
+  const eur = v => numPT(v, 2) + ' €';
+  const usd = v => (v < 0 ? '-' : '') + '$' + numPT(Math.abs(v), 2);
+  const pct = v => numPT(v, 1) + '%';
 
   function params(){
     return {
