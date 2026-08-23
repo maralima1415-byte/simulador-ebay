@@ -197,6 +197,7 @@
     border-top:2px solid var(--line);margin-top:4px;font-variant-numeric:tabular-nums;
   }
   .pecas-note{font-size:.82rem;color:var(--ink-2);margin:10px 0 0}
+  .nota-nome{font-size:.84rem;color:var(--accent);margin:2px 0 0;cursor:pointer;font-weight:600}
   footer{color:var(--ink-2);font-size:.82rem;text-align:center;max-width:60ch;margin:0 auto}
   footer .assinatura{display:block;margin-top:12px;font-size:.78rem}
   footer .assinatura a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
@@ -223,7 +224,9 @@
       <div class="fields">
         <div class="field wide">
           <label for="nome">O que estás a vender? (para guardares na lista)</label>
-          <div class="money"><input type="text" id="nome" placeholder="Ex.: Ténis, farolim, telemóvel…" style="width:100%;font:inherit;color:var(--ink);background:var(--input-bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px"></div>
+          <div class="money"><input type="text" id="nome" list="listaNomes" autocomplete="off" oninput="verificaNome()" placeholder="Ex.: Ténis, farolim, telemóvel…" style="width:100%;font:inherit;color:var(--ink);background:var(--input-bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px"></div>
+          <datalist id="listaNomes"></datalist>
+          <p class="nota-nome" id="notaNome" hidden></p>
         </div>
         <div class="field">
           <label for="preco">Preço de venda</label>
@@ -314,8 +317,11 @@
     <div id="listaPecas"><p class="empty">Ainda não guardaste nenhum artigo. Calcula um no separador «Quanto lucro?» e carrega em «Guardar».</p></div>
     <div class="pecas-totais" id="pecasTotais" hidden><span>Total (<span id="pecasN"></span> artigos)</span><span id="pecasLucro"></span></div>
     <button class="btn" id="btnCopiar" onclick="copiarPecas()" style="margin-top:14px" hidden>Copiar para o Google Sheets</button>
-    <button class="btn secondary" id="btnExport" onclick="exportPecas()" style="margin-top:8px" hidden>Guardar a lista num ficheiro (grátis, abre em qualquer aparelho)</button>
-    <p class="pecas-note">A lista fica guardada neste browser, neste aparelho. Se limpares os dados do browser ou mudares de telemóvel, perde-se — exporta de vez em quando para teres backup. Toca num artigo para o voltares a carregar na calculadora.</p>
+    <div id="exportRow" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px" hidden>
+      <button class="btn secondary" id="btnExportCsv" onclick="exportCsv()">Descarregar tabela (CSV)</button>
+      <button class="btn secondary" id="btnExportTxt" onclick="exportTxt()">Descarregar em texto</button>
+    </div>
+    <p class="pecas-note">A lista fica guardada neste browser, neste aparelho. Se limpares os dados do browser ou mudares de telemóvel, perde-se — exporta de vez em quando para teres backup. Toca num artigo para o voltares a carregar; guarda com o mesmo nome para o atualizares (ex.: mudaste o preço).</p>
   </div>
 
   <!-- ================= TAXAS ================= -->
@@ -395,7 +401,13 @@
     const box = $('resultado');
     box.classList.toggle('loss', lucro < 0);
     $('lucroBig').textContent = eur(lucro);
-    $('lucroSub').textContent = total > 0 ? 'Margem de ' + pct(margem*100) + ' sobre a venda' : '';
+    let veredito = '';
+    if (total > 0){
+      if (lucro < 0) veredito = '';
+      else if (margem < 0.10) veredito = ' · ⚠ margem apertada — pensa se vale a pena';
+      else veredito = ' · ✓ vale a pena';
+    }
+    $('lucroSub').textContent = total > 0 ? 'Margem de ' + pct(margem*100) + ' sobre a venda' + veredito : '';
     $('lucroWarn').hidden = lucro >= 0;
 
     const rows = [
@@ -463,15 +475,18 @@
     const nome = $('nome').value.trim();
     if (!nome){ $('nome').focus(); $('nome').placeholder = 'Escreve primeiro o que estás a vender'; return; }
     const r = lucroAtual();
-    pecas.push({
+    const registo = {
       nome, preco: num('preco'), portes: num('portes'), promo: num('promo'),
       custo: num('custo'), envio: num('envio'), emb: num('emb'),
       lucro: Math.round(r.lucro*100)/100, margem: Math.round(r.margem*1000)/1000,
       data: new Date().toISOString().slice(0,10)
-    });
-    persistir(); renderPecas();
+    };
+    const existente = pecas.findIndex(p => p.nome.trim().toLowerCase() === nome.toLowerCase());
+    const atualizou = existente >= 0;
+    if (atualizou) pecas[existente] = registo; else pecas.push(registo);
+    persistir(); renderPecas(); verificaNome();
     $('nome').value = '';
-    const b = $('btnGuardar'); b.textContent = 'Guardado ✓'; b.disabled = true;
+    const b = $('btnGuardar'); b.textContent = atualizou ? 'Artigo atualizado ✓' : 'Guardado ✓'; b.disabled = true;
     setTimeout(() => { b.textContent = 'Guardar este artigo na lista'; b.disabled = false; }, 1200);
   }
 
@@ -495,10 +510,30 @@
     }
     const tot = pecas.reduce((s,p) => s+p.lucro, 0);
     $('pecasTotais').hidden = !pecas.length;
-    $('btnExport').hidden = !pecas.length;
+    $('exportRow').hidden = !pecas.length;
     $('btnCopiar').hidden = !pecas.length;
     $('pecasN').textContent = pecas.length;
+    atualizaSugestoes();
     $('pecasLucro').textContent = eur(tot);
+  }
+
+  function atualizaSugestoes(){
+    const dl = $('listaNomes');
+    if (dl) dl.innerHTML = pecas.map(p => '<option value="'+esc(p.nome)+'">').join('');
+  }
+
+  function verificaNome(){
+    const nota = $('notaNome');
+    if (!nota) return;
+    const v = $('nome').value.trim().toLowerCase();
+    const i = v ? pecas.findIndex(p => p.nome.trim().toLowerCase() === v) : -1;
+    if (i >= 0){
+      nota.hidden = false;
+      nota.textContent = 'Já tens este artigo guardado (lucro ' + eur(pecas[i].lucro) + ') — guardar atualiza-o; toca aqui para carregar os valores.';
+      nota.onclick = () => usarPeca(i);
+    } else {
+      nota.hidden = true;
+    }
   }
 
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -516,18 +551,35 @@
       + NL+NL+'TOTAL: '+pecas.length+' artigo'+(pecas.length===1?'':'s')+' \u2014 '+n2(tot)+' \u20ac'+NL;
   }
 
-  async function exportPecas(){
-    const conteudo = txtLista();
-    if (window.claude && window.claude.downloads){
-      try {
-        await window.claude.downloads.save({ filename: 'pecas-ebay.txt', data: conteudo });
-      } catch(err){ /* recusado ou indisponivel: nao repetir automaticamente */ }
-      return;
-    }
+  function csvLista(){
+    const NL = String.fromCharCode(10);
+    const n2 = v => v.toFixed(2).replace('.', ',');
+    const celula = s => '"' + String(s).replace(/"/g, '""') + '"';
+    const cab = ['Data','Artigo','Preço venda $','Portes $','Anúncio %','Custo do artigo €','Envio €','Embalagem €','Lucro €','Margem %'].map(celula).join(';');
+    const linhas = pecas.map(p => [
+      p.data, celula(p.nome), n2(p.preco), n2(p.portes), n2(p.promo),
+      n2(p.custo), n2(p.envio), n2(p.emb), n2(p.lucro), n2(p.margem*100)
+    ].join(';'));
+    return String.fromCharCode(65279) + [cab].concat(linhas).join(NL);
+  }
+
+  function descarregar(nomeFicheiro, conteudo, mime){
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([conteudo], {type:'text/plain;charset=utf-8'}));
-    a.download = 'pecas-ebay.txt';
+    a.href = URL.createObjectURL(new Blob([conteudo], {type: mime}));
+    a.download = nomeFicheiro;
     document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  function nomeComData(base, ext){
+    return base + '-' + new Date().toISOString().slice(0,10) + '.' + ext;
+  }
+
+  function exportCsv(){
+    descarregar(nomeComData('artigos-ebay', 'csv'), csvLista(), 'text/csv;charset=utf-8');
+  }
+
+  function exportTxt(){
+    descarregar(nomeComData('artigos-ebay', 'txt'), txtLista(), 'text/plain;charset=utf-8');
   }
 
   function tsvLista(){
