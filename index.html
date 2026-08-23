@@ -1,5 +1,43 @@
-<title>Simulador de Lucro no eBay</title>
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Simulador de Lucro no eBay — grátis, sem conta</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Calcula em segundos quanto te sobra de cada venda no eBay: taxas, câmbio e custos descontados. Diz-te também o preço mínimo para não perderes dinheiro. Grátis, sem conta, direto no browser.">
+<link rel="canonical" href="https://simulador.maratavares.pt/">
+<meta name="theme-color" content="#F4F4F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#181B1F" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://simulador.maratavares.pt/">
+<meta property="og:site_name" content="Mara Tavares Studio">
+<meta property="og:locale" content="pt_PT">
+<meta property="og:title" content="Simulador de Lucro no eBay">
+<meta property="og:description" content="Quanto te sobra mesmo, depois de todas as taxas do eBay? Calcula em segundos. Grátis, sem conta.">
+<meta property="og:image" content="https://simulador.maratavares.pt/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Simulador de Lucro no eBay">
+<meta name="twitter:description" content="Quanto te sobra mesmo, depois de todas as taxas do eBay? Grátis, sem conta.">
+<meta name="twitter:image" content="https://simulador.maratavares.pt/assets/og.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Simulador de Lucro no eBay",
+  "url": "https://simulador.maratavares.pt/",
+  "description": "Calculadora gratuita de lucro para vendas no eBay: desconta todas as taxas, converte para euros e diz o preço mínimo para não perder dinheiro.",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "pt-PT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "author": { "@type": "Organization", "name": "Mara Tavares Studio", "url": "https://maratavares.pt" }
+}
+</script>
 <style>
   :root{
     --ground:#F4F4F1;
@@ -142,7 +180,8 @@
     border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;
   }
   .peca-row:last-of-type{border-bottom:0}
-  .peca-row .info{flex:1;min-width:0}
+  .peca-row .info{flex:1;min-width:0;cursor:pointer;border-radius:6px}
+  .peca-row .info:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .peca-row .nome{font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .peca-row .det{font-size:.82rem;color:var(--ink-2)}
   .peca-row .lucro{font-weight:700;white-space:nowrap}
@@ -163,6 +202,8 @@
   footer .assinatura a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
   footer .assinatura a:hover,footer .assinatura a:focus-visible{color:var(--accent)}
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <header>
@@ -274,7 +315,7 @@
     <div class="pecas-totais" id="pecasTotais" hidden><span>Total (<span id="pecasN"></span> artigos)</span><span id="pecasLucro"></span></div>
     <button class="btn" id="btnCopiar" onclick="copiarPecas()" style="margin-top:14px" hidden>Copiar para o Google Sheets</button>
     <button class="btn secondary" id="btnExport" onclick="exportPecas()" style="margin-top:8px" hidden>Guardar a lista num ficheiro (grátis, abre em qualquer aparelho)</button>
-    <p class="pecas-note">A lista fica guardada neste browser, neste aparelho. Se limpares os dados do browser ou mudares de telemóvel, perde-se — exporta de vez em quando para teres backup.</p>
+    <p class="pecas-note">A lista fica guardada neste browser, neste aparelho. Se limpares os dados do browser ou mudares de telemóvel, perde-se — exporta de vez em quando para teres backup. Toca num artigo para o voltares a carregar na calculadora.</p>
   </div>
 
   <!-- ================= TAXAS ================= -->
@@ -307,6 +348,8 @@
       </div>
     </div>
   </details>
+
+  <button class="btn secondary" id="btnPartilhar" onclick="partilharSimulador()">Partilhar este simulador</button>
 
   <footer>As taxas do eBay aplicam-se ao total pago pelo comprador (preço + portes). Valores indicativos — confirma as tuas taxas exatas no Seller Hub do eBay.
     <span class="assinatura">Feito por <a href="https://maratavares.pt">Mara Tavares Studio — maratavares.pt</a></span>
@@ -443,7 +486,7 @@
     } else {
       box.innerHTML = pecas.map((p,i) =>
         '<div class="peca-row">'
-        + '<div class="info"><div class="nome">'+esc(p.nome)+'</div>'
+        + '<div class="info" role="button" tabindex="0" title="Tocar para voltar a carregar" onclick="usarPeca('+i+')" onkeydown="if(event.key===String.fromCharCode(69,110,116,101,114))usarPeca('+i+')"><div class="nome">'+esc(p.nome)+'</div>'
         + '<div class="det">'+usd(p.preco+p.portes)+' de venda · custos '+eur(p.custo+p.envio+p.emb)+' · '+p.data+'</div></div>'
         + '<div class="lucro'+(p.lucro<0?' neg':'')+'">'+eur(p.lucro)+'</div>'
         + '<button class="del" aria-label="Apagar '+esc(p.nome)+'" onclick="delPeca('+i+')">✕</button>'
@@ -531,7 +574,44 @@
   }
   atualizarCambio();
 
+  function usarPeca(i){
+    const p = pecas[i];
+    if (!p) return;
+    $('nome').value = p.nome;
+    $('preco').value = p.preco;
+    $('portes').value = p.portes;
+    $('promo').value = p.promo;
+    $('custo').value = p.custo;
+    $('envio').value = p.envio;
+    $('emb').value = p.emb;
+    showTab('lucro');
+    recalc();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  async function partilharSimulador(){
+    const b = $('btnPartilhar');
+    const dados = {
+      title: 'Simulador de Lucro no eBay',
+      text: 'Calcula quanto te sobra mesmo de cada venda no eBay, com as taxas todas descontadas. Gr\u00e1tis, sem conta:',
+      url: 'https://simulador.maratavares.pt/'
+    };
+    if (navigator.share){
+      try { await navigator.share(dados); } catch(e){ /* cancelado */ }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(dados.url);
+      b.textContent = 'Link copiado \u2713';
+    } catch(e){
+      b.textContent = dados.url;
+    }
+    setTimeout(() => { b.textContent = 'Partilhar este simulador'; }, 2500);
+  }
+
   document.querySelectorAll('input').forEach(i => { if (i.type === 'number') i.addEventListener('input', recalc); });
   recalc();
   renderPecas();
 </script>
+</body>
+</html>
