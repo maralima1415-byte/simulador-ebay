@@ -197,6 +197,12 @@
     border-top:2px solid var(--line);margin-top:4px;font-variant-numeric:tabular-nums;
   }
   .pecas-note{font-size:.82rem;color:var(--ink-2);margin:10px 0 0}
+  .moedas{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 20px}
+  .moedas select{
+    font:inherit;color:var(--ink);background:var(--input-bg);
+    border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;
+  }
+  .moedas select:focus-visible{outline:2px solid var(--accent);outline-offset:-1px}
   .nota-nome{font-size:.84rem;color:var(--accent);margin:2px 0 0;cursor:pointer;font-weight:600}
   footer{color:var(--ink-2);font-size:.82rem;text-align:center;max-width:60ch;margin:0 auto}
   footer .assinatura{display:block;margin-top:12px;font-size:.78rem}
@@ -217,6 +223,17 @@
     <button role="tab" id="tab-minimo" aria-selected="false" onclick="showTab('minimo')">Preço mínimo</button>
   </div>
 
+  <div class="moedas card">
+    <div class="field">
+      <label for="moedaVenda">Vendes em (moeda do site eBay)</label>
+      <select id="moedaVenda" onchange="mudouMoeda()"></select>
+    </div>
+    <div class="field">
+      <label for="moedaCasa">Recebes em (a tua moeda)</label>
+      <select id="moedaCasa" onchange="mudouMoeda()"></select>
+    </div>
+  </div>
+
   <!-- ================= PAINEL LUCRO ================= -->
   <section class="panel active" id="panel-lucro">
     <div class="card">
@@ -230,15 +247,15 @@
         </div>
         <div class="field">
           <label for="preco">Preço de venda</label>
-          <div class="money"><input type="number" id="preco" value="85" min="0" step="0.5" inputmode="decimal"><span>$</span></div>
+          <div class="money"><input type="number" id="preco" value="" placeholder="0" min="0" step="0.5" inputmode="decimal"><span class="simb-venda">$</span></div>
         </div>
         <div class="field">
           <label for="portes">Portes cobrados ao comprador</label>
-          <div class="money"><input type="number" id="portes" value="25" min="0" step="0.5" inputmode="decimal"><span>$</span></div>
+          <div class="money"><input type="number" id="portes" value="" placeholder="0" min="0" step="0.5" inputmode="decimal"><span class="simb-venda">$</span></div>
         </div>
         <div class="field wide">
           <label for="promo">Anúncio patrocinado (0 se não usares)</label>
-          <div class="money"><input type="number" id="promo" value="2" min="0" max="30" step="0.5" inputmode="decimal"><span>%</span></div>
+          <div class="money"><input type="number" id="promo" value="" placeholder="0" min="0" max="30" step="0.5" inputmode="decimal"><span>%</span></div>
         </div>
       </div>
     </div>
@@ -248,15 +265,15 @@
       <div class="fields">
         <div class="field">
           <label for="custo">Custo do artigo</label>
-          <div class="money"><input type="number" id="custo" value="30" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+          <div class="money"><input type="number" id="custo" value="" placeholder="0" min="0" step="0.5" inputmode="decimal"><span class="simb-casa">€</span></div>
         </div>
         <div class="field">
           <label for="envio">Envio que pagas</label>
-          <div class="money"><input type="number" id="envio" value="18.5" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+          <div class="money"><input type="number" id="envio" value="" placeholder="0" min="0" step="0.5" inputmode="decimal"><span class="simb-casa">€</span></div>
         </div>
         <div class="field wide">
           <label for="emb">Embalagem</label>
-          <div class="money"><input type="number" id="emb" value="2" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+          <div class="money"><input type="number" id="emb" value="" placeholder="0" min="0" step="0.5" inputmode="decimal"><span class="simb-casa">€</span></div>
         </div>
       </div>
     </div>
@@ -283,23 +300,23 @@
       <div class="fields">
         <div class="field">
           <label for="mCusto">Custo do artigo</label>
-          <div class="money"><input type="number" id="mCusto" value="30" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+          <div class="money"><input type="number" id="mCusto" value="" placeholder="0" min="0" step="0.5" inputmode="decimal"><span class="simb-casa">€</span></div>
         </div>
         <div class="field">
           <label for="mEnvio">Envio que vais pagar</label>
-          <div class="money"><input type="number" id="mEnvio" value="18.5" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+          <div class="money"><input type="number" id="mEnvio" value="" placeholder="0" min="0" step="0.5" inputmode="decimal"><span class="simb-casa">€</span></div>
         </div>
         <div class="field">
           <label for="mEmb">Embalagem</label>
-          <div class="money"><input type="number" id="mEmb" value="2" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+          <div class="money"><input type="number" id="mEmb" value="" placeholder="0" min="0" step="0.5" inputmode="decimal"><span class="simb-casa">€</span></div>
         </div>
         <div class="field">
           <label for="mLucro">Lucro que queres</label>
-          <div class="money"><input type="number" id="mLucro" value="25" min="0" step="0.5" inputmode="decimal"><span>€</span></div>
+          <div class="money"><input type="number" id="mLucro" value="" placeholder="0" min="0" step="0.5" inputmode="decimal"><span class="simb-casa">€</span></div>
         </div>
         <div class="field wide">
           <label for="mPromo">Anúncio patrocinado (0 se não usares)</label>
-          <div class="money"><input type="number" id="mPromo" value="2" min="0" max="30" step="0.5" inputmode="decimal"><span>%</span></div>
+          <div class="money"><input type="number" id="mPromo" value="" placeholder="0" min="0" max="30" step="0.5" inputmode="decimal"><span>%</span></div>
         </div>
       </div>
     </div>
@@ -328,7 +345,7 @@
   <details class="params">
     <summary>Mais opções</summary>
     <div class="inner">
-      <p class="note">A taxa de venda varia por categoria do eBay — a predefinição (13,25%) é a mais comum sem loja; confirma a tua no Seller Hub. Se venderes num site eBay europeu em euros: câmbio = 1 e conversão = 0.</p>
+      <p class="note">A taxa de venda varia por categoria do eBay — a predefinição (13,25%) é a mais comum sem loja; confirma a tua no Seller Hub. Se vendes e recebes na mesma moeda, o câmbio e a conversão de moeda não contam — são ignorados automaticamente.</p>
       <div class="fields">
         <div class="field">
           <label for="pFvf">Taxa de venda da tua categoria (%)</label>
@@ -336,7 +353,7 @@
         </div>
         <div class="field">
           <label for="pFixa">Taxa fixa por encomenda</label>
-          <div class="money"><input type="number" id="pFixa" value="0.40" min="0" step="0.05" inputmode="decimal"><span>$</span></div>
+          <div class="money"><input type="number" id="pFixa" value="0.40" min="0" step="0.05" inputmode="decimal"><span class="simb-venda">$</span></div>
         </div>
         <div class="field">
           <label for="pIntl">Taxa internacional</label>
@@ -347,8 +364,8 @@
           <div class="money"><input type="number" id="pConv" value="3" min="0" max="10" step="0.1" inputmode="decimal"><span>%</span></div>
         </div>
         <div class="field wide">
-          <label for="pCambio">Câmbio: 1 dólar vale (em euros)</label>
-          <div class="money"><input type="number" id="pCambio" value="0.86" min="0.1" max="2" step="0.01" inputmode="decimal"><span>€</span></div>
+          <label for="pCambio">Câmbio: quanto vale 1 unidade da moeda de venda, na tua moeda</label>
+          <div class="money"><input type="number" id="pCambio" value="0.86" min="0.0001" max="1000" step="0.0001" inputmode="decimal"><span class="simb-casa">€</span></div>
           <p class="note" id="cambioInfo">Atualiza sozinho com o câmbio do dia ao abrir a página; podes sempre editar.</p>
         </div>
       </div>
@@ -372,20 +389,54 @@
     const grp = i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     return (neg ? '-' : '') + grp + (dec ? ',' + d : '');
   };
-  const eur = v => numPT(v, 2) + ' €';
-  const usd = v => (v < 0 ? '-' : '') + '$' + numPT(Math.abs(v), 2);
+  const MOEDAS = {
+    USD: {simb: '$',   antes: true,  nome: 'dólar americano'},
+    EUR: {simb: '€',   antes: false, nome: 'euro'},
+    GBP: {simb: '£',   antes: true,  nome: 'libra'},
+    CHF: {simb: 'CHF', antes: true,  nome: 'franco suíço'},
+    CAD: {simb: 'C$',  antes: true,  nome: 'dólar canadiano'},
+    AUD: {simb: 'A$',  antes: true,  nome: 'dólar australiano'},
+    PLN: {simb: 'zł',  antes: false, nome: 'zlóti'},
+    SEK: {simb: 'kr',  antes: false, nome: 'coroa sueca'}
+  };
+  const KEY_MOEDAS = 'simulador-ebay-moedas-v1';
+  let moedaVenda = 'USD', moedaCasa = 'EUR';
+  try {
+    const g = JSON.parse(localStorage.getItem(KEY_MOEDAS)) || {};
+    if (MOEDAS[g.venda]) moedaVenda = g.venda;
+    if (MOEDAS[g.casa]) moedaCasa = g.casa;
+  } catch(e){}
+
+  function fmtMoeda(v, codigo){
+    const m = MOEDAS[codigo];
+    const neg = v < 0 ? '-' : '';
+    const n = numPT(Math.abs(v), 2);
+    return m.antes ? neg + m.simb + n : neg + n + ' ' + m.simb;
+  }
+  const eur = v => fmtMoeda(v, moedaCasa);
+  const usd = v => fmtMoeda(v, moedaVenda);
   const pct = v => numPT(v, 1) + '%';
 
   function params(){
+    const iguais = moedaVenda === moedaCasa;
     return {
       fvf: num('pFvf')/100, fixa: num('pFixa'), intl: num('pIntl')/100,
-      conv: num('pConv')/100, cambio: num('pCambio')
+      conv: iguais ? 0 : num('pConv')/100,
+      cambio: iguais ? 1 : num('pCambio')
     };
   }
 
   function calcLucro(){
     const p = params();
     const preco = num('preco'), portes = num('portes'), promo = num('promo')/100;
+    if (preco <= 0){
+      $('resultado').classList.remove('loss');
+      $('lucroBig').textContent = '—';
+      $('lucroSub').textContent = 'Preenche o preço de venda e os teus custos para veres o lucro.';
+      $('lucroWarn').hidden = true;
+      $('breakdown').innerHTML = '<p class="empty">Assim que meteres o preço, mostramos aqui para onde vai cada cêntimo.</p>';
+      return;
+    }
     const custos = num('custo') + num('envio') + num('emb');
     const total = preco + portes;
     const taxaVenda = total * p.fvf;
@@ -417,7 +468,7 @@
       ['Anúncio patrocinado (' + pct(promo*100) + ')', '− ' + usd(taxaPromo)],
       ['Taxa fixa', '− ' + usd(p.fixa)],
       ['Recebes do eBay', usd(recebeUsd)],
-      ['Conversão para euros', eur(recebeUsd * p.cambio) + ' − ' + eur(custoConv)],
+      ['Conversão para a tua moeda', eur(recebeUsd * p.cambio) + ' − ' + eur(custoConv)],
       ['Cai na tua conta', eur(recebeEur)],
       ['Custos teus (artigo + envio + embalagem)', '− ' + eur(custos)],
     ];
@@ -430,6 +481,11 @@
     const p = params();
     const promo = num('mPromo')/100;
     const alvoEur = num('mCusto') + num('mEnvio') + num('mEmb') + num('mLucro');
+    if (alvoEur <= 0){
+      $('mBig').textContent = '—';
+      $('mSub').textContent = 'Preenche os teus custos e o lucro que queres.';
+      return;
+    }
     const denomFx = p.cambio * (1 - p.conv);
     const denomFee = 1 - p.fvf - p.intl - promo;
     let texto = '—', sub = '';
@@ -474,6 +530,12 @@
   function addPeca(){
     const nome = $('nome').value.trim();
     if (!nome){ $('nome').focus(); $('nome').placeholder = 'Escreve primeiro o que estás a vender'; return; }
+    if (num('preco') <= 0){
+      $('preco').focus();
+      const b0 = $('btnGuardar'); b0.textContent = 'Falta o preço de venda';
+      setTimeout(() => { b0.textContent = 'Guardar este artigo na lista'; }, 1500);
+      return;
+    }
     const r = lucroAtual();
     const registo = {
       nome, preco: num('preco'), portes: num('portes'), promo: num('promo'),
@@ -542,20 +604,21 @@
     const n2 = v => v.toFixed(2).replace('.', ',');
     const NL = String.fromCharCode(10);
     const linhas = pecas.map((p,i) =>
-      (i+1)+'. '+p.nome+' \u2014 lucro '+n2(p.lucro)+' \u20ac'+NL
-      +'   venda $'+n2(p.preco+p.portes)+' \u00b7 custos '+n2(p.custo+p.envio+p.emb)+' \u20ac \u00b7 guardada em '+p.data
+      (i+1)+'. '+p.nome+' — lucro '+eur(p.lucro)+NL
+      +'   venda '+usd(p.preco+p.portes)+' · custos '+eur(p.custo+p.envio+p.emb)+' · guardada em '+p.data
     );
     const tot = pecas.reduce((s,p) => s+p.lucro, 0);
     return 'OS MEUS ARTIGOS \u2014 SIMULADOR EBAY'+NL+NL
       + linhas.join(NL+NL)
-      + NL+NL+'TOTAL: '+pecas.length+' artigo'+(pecas.length===1?'':'s')+' \u2014 '+n2(tot)+' \u20ac'+NL;
+      + NL+NL+'TOTAL: '+pecas.length+' artigo'+(pecas.length===1?'':'s')+' — '+eur(tot)+NL;
   }
 
   function csvLista(){
     const NL = String.fromCharCode(10);
     const n2 = v => v.toFixed(2).replace('.', ',');
     const celula = s => '"' + String(s).replace(/"/g, '""') + '"';
-    const cab = ['Data','Artigo','Preço venda $','Portes $','Anúncio %','Custo do artigo €','Envio €','Embalagem €','Lucro €','Margem %'].map(celula).join(';');
+    const sv = MOEDAS[moedaVenda].simb, sc = MOEDAS[moedaCasa].simb;
+    const cab = ['Data','Artigo','Preço venda '+sv,'Portes '+sv,'Anúncio %','Custo do artigo '+sc,'Envio '+sc,'Embalagem '+sc,'Lucro '+sc,'Margem %'].map(celula).join(';');
     const linhas = pecas.map(p => [
       p.data, celula(p.nome), n2(p.preco), n2(p.portes), n2(p.promo),
       n2(p.custo), n2(p.envio), n2(p.emb), n2(p.lucro), n2(p.margem*100)
@@ -585,7 +648,8 @@
   function tsvLista(){
     const TAB = String.fromCharCode(9), NL = String.fromCharCode(10);
     const n2 = v => v.toFixed(2).replace('.', ',');
-    const cab = ['Data','Artigo','Pre\u00e7o venda $','Portes $','An\u00fancio %','Custo do artigo \u20ac','Envio \u20ac','Embalagem \u20ac','Lucro \u20ac','Margem %'].join(TAB);
+    const sv = MOEDAS[moedaVenda].simb, sc = MOEDAS[moedaCasa].simb;
+    const cab = ['Data','Artigo','Preço venda '+sv,'Portes '+sv,'Anúncio %','Custo do artigo '+sc,'Envio '+sc,'Embalagem '+sc,'Lucro '+sc,'Margem %'].join(TAB);
     const linhas = pecas.map(p => [
       p.data, p.nome, n2(p.preco), n2(p.portes), n2(p.promo),
       n2(p.custo), n2(p.envio), n2(p.emb), n2(p.lucro), n2(p.margem*100)
@@ -609,21 +673,51 @@
 
   // ---------- câmbio do dia (BCE via frankfurter.dev; falha = fica a predefinição) ----------
   async function atualizarCambio(){
+    const info = $('cambioInfo');
+    if (moedaVenda === moedaCasa){
+      $('pCambio').value = 1;
+      if (info) info.textContent = 'Mesma moeda dos dois lados — o câmbio não se aplica.';
+      recalc();
+      return;
+    }
     try {
-      const r = await fetch('https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR');
+      const r = await fetch('https://api.frankfurter.dev/v1/latest?base='+moedaVenda+'&symbols='+moedaCasa);
       if (!r.ok) return;
       const d = await r.json();
-      const taxa = d && d.rates && d.rates.EUR;
-      if (!taxa || taxa <= 0.1 || taxa >= 2) return;
-      const campo = $('pCambio');
-      if (parseFloat(campo.value) === 0.86){
-        campo.value = taxa.toFixed(4);
-        const info = $('cambioInfo');
-        if (info) info.textContent = 'C\u00e2mbio de hoje ('+d.date+', Banco Central Europeu) carregado automaticamente. Podes editar.';
-        recalc();
-      }
-    } catch(e){ /* offline: fica a predefini\u00e7\u00e3o 0,86 */ }
+      const taxa = d && d.rates && d.rates[moedaCasa];
+      if (!taxa || taxa <= 0.001 || taxa >= 1000) return;
+      $('pCambio').value = (Math.round(taxa*10000)/10000);
+      if (info) info.textContent = 'Câmbio de hoje ('+d.date+', Banco Central Europeu) carregado automaticamente. Podes editar.';
+      recalc();
+    } catch(e){ /* offline: fica o valor que estiver */ }
   }
+
+  function pintaMoedas(){
+    document.querySelectorAll('.simb-venda').forEach(s => s.textContent = MOEDAS[moedaVenda].simb);
+    document.querySelectorAll('.simb-casa').forEach(s => s.textContent = MOEDAS[moedaCasa].simb);
+  }
+
+  function mudouMoeda(){
+    moedaVenda = $('moedaVenda').value;
+    moedaCasa = $('moedaCasa').value;
+    try { localStorage.setItem(KEY_MOEDAS, JSON.stringify({venda: moedaVenda, casa: moedaCasa})); } catch(e){}
+    pintaMoedas();
+    renderPecas();
+    recalc();
+    atualizarCambio();
+  }
+
+  function montaSeletores(){
+    const op = cod => '<option value="'+cod+'">'+cod+' — '+MOEDAS[cod].nome+'</option>';
+    const todas = Object.keys(MOEDAS).map(op).join('');
+    $('moedaVenda').innerHTML = todas;
+    $('moedaCasa').innerHTML = todas;
+    $('moedaVenda').value = moedaVenda;
+    $('moedaCasa').value = moedaCasa;
+  }
+
+  montaSeletores();
+  pintaMoedas();
   atualizarCambio();
 
   function usarPeca(i){
